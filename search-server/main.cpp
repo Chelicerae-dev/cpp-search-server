@@ -86,7 +86,7 @@
             const Query query = ParseQuery(raw_query);
             vector<Document> matched_documents = FindAllDocuments(query, filter_predicate);
             sort(matched_documents.begin(), matched_documents.end(),
-                [](const vector<Document>& lhs, const vector<Document>& rhs) {
+                [](const Document& lhs, const Document& rhs) {
                         if (abs(lhs.relevance - rhs.relevance) < COMPARISON_PRECISION) {
                              return lhs.rating > rhs.rating;
                         } else {
