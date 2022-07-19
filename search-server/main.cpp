@@ -229,7 +229,8 @@
                 }
                 const double inverse_document_freq = ComputeWordInverseDocumentFreq(word);
                 for (const auto [document_id, term_freq] : word_to_document_freqs_.at(word)) {
-                    DocumentData current_document_data = documents_.at(document_id); //Мне кажется что это самый компактный способ последовать рекомендации (она весьма акутальна)
+                    //константная ссылка вместо копирования в current_document_data (последний совет)
+                    const DocumentData& current_document_data = documents_.at(document_id); //Мне кажется что это самый компактный способ последовать рекомендации (она весьма акутальна)
                     if(filter_predicate(document_id, current_document_data.status, current_document_data.rating)) {
                         document_to_relevance[document_id] += term_freq * inverse_document_freq;
                     }
