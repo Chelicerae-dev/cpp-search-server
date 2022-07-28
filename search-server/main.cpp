@@ -566,9 +566,8 @@ void TestRating() {
     }
 }
 
-//Тест проверяет работу с релевантностью документов
- //Объединены в один во избежание дублирования кода для вычисления релевантности
-void TestRelevanceCalculationAndSort() {
+//Тест проверяет вычисление релевантности документов
+void TestRelevanceCalculation() {
     const vector<string> content = {"белый кот модный ошейник"s, "пушистый кот пушистый хвост"s, "ухоженный пёс выразительные глаза"s};
     const string query = "ухоженный кот"s;
     const vector<vector<int>> ratings = {{8, -3}, {7, 2, 7}, {5, -12, 2, 1}};
@@ -613,9 +612,7 @@ void TestRelevanceCalculationAndSort() {
         expected_relevance[i] = relevance;
     }
 
-
-    //Проверяем вычисление релевантности и сортировку по ней
-   
+    //Проверяем вычисление релевантности  
     {
         SearchServer server;
         server.SetStopWords("и в на"s);
@@ -627,27 +624,23 @@ void TestRelevanceCalculationAndSort() {
         //проверяем вычисление релевантности
         map<int, double> result_id_to_relevance;
         for(const auto& [id, relevance] : result_id_to_relevance) {
-        ASSERT_HINT(abs(relevance - expected_relevance.at(id)) < COMPARISON_PRECISION, "Relevance calculation is incorrect"s);
-        }
-
-        //проверяем сортировку
-        vector<Document> expected_vector;
-        for(const auto& [id, relevance] : expected_relevance) {
-            expected_vector.push_back({id, relevance, accumulate(ratings[id].begin(), ratings[id].end(), 0)/static_cast<int>(ratings[id].size())});
-        }
-        sort(expected_vector.begin(), expected_vector.end(),
-            [](const Document& lhs, const Document& rhs) {
-                    if (abs(lhs.relevance - rhs.relevance) < COMPARISON_PRECISION) {
-                         return lhs.rating > rhs.rating;
-                    } else {
-                        return lhs.relevance > rhs.relevance;
-                    }
-            });
-        for(int i = 0; i < 3; ++i) {
-            ASSERT_EQUAL_HINT(result[i].id, expected_vector[i].id, "Relevance sorting is incorrect"s);
+            ASSERT_HINT(abs(relevance - expected_relevance.at(id)) < COMPARISON_PRECISION, "Relevance calculation is incorrect"s);
         }
     }
+}
 
+//Тест проверяет сортировку выдачи
+void TestSorting() {
+    const vector<string> content = {"cat in the city"s,
+        "cat in the city eats cat food and does other stuff cat do"s,
+        "cat cat cat food food food"s};
+    SearchServer server;
+    for(int i = 0; i < 3; ++i) {
+        server.AddDocument(i, content[i], DocumentStatus::ACTUAL, {1, 2, 3});
+    }
+    vector<Document> result = server.FindTopDocuments("cat food"s);
+    ASSERT_EQUAL(result.size(), 3u);
+    ASSERT_HINT(result[0].relevance >= result[1].relevance && result[1].relevance >= result[2].relevance, "Sorting is incorrect"s);
 }
 
 //Тест проверяет работу предиката-фильтра
@@ -663,7 +656,7 @@ void TestPredicate() {
         server.AddDocument(i, content[i], statuses[i], ratings[i]);
     }
     //Тестируем предикаты
-    //Сортировка по ID
+    //Фильтр по ID
     {
         const vector<Document> result = server.FindTopDocuments("cat food"s, [](int id, DocumentStatus status, int rating) {
             return id < 2;
@@ -677,25 +670,24 @@ void TestPredicate() {
         vector<int> expected_ids = {1, 0};      
         ASSERT_EQUAL_HINT(result_ids, expected_ids, "Predicate filtering is incorrect"s);
     }
-    //Сортировка по рейтингу
+    //Фильтр по рейтингу
     {
         const vector<Document> result = server.FindTopDocuments("cat"s, [](int id, DocumentStatus status, int rating) {
             return rating == 2;
         });
-        //We expect to get only last document (ID = 2, ratings = {1, 2, 3})
+        //Ожидаем только последний документ (ID = 2, ratings = {1, 2, 3})
         ASSERT_EQUAL(result.size(), 1u);
         ASSERT_HINT(result[0].id == 2, "Predicate filtering is incorrect"s);
     }
 }
 
 //Тест проверяет поведение перегруженных функций FindTopDocuments
-void TestFindTopDocumentsOverloads() {
+void TestFindByStatus() {
     const vector<string> content = {"cat in the city"s,
         "cat in the city eats cat food and does other stuff cat do"s,
         "cat cat cat food food food"s};
     const vector<DocumentStatus> statuses = {DocumentStatus::ACTUAL, DocumentStatus::BANNED, DocumentStatus::IRRELEVANT};
     const vector<vector<int>> ratings = {{3, 4, 5}, {2, 3, 4}, {1, 2, 3}};
-    //Создаём общий SearchServer для всех тестов этой функции
     SearchServer server;
     for(int i = 0; i < 3; ++i) {
         server.AddDocument(i, content[i], statuses[i], ratings[i]);
@@ -707,14 +699,7 @@ void TestFindTopDocumentsOverloads() {
         ASSERT_EQUAL_HINT(result[0].id, 1, "Status filtering is incorrect"s);
         const vector<Document> no_existing_status_result = server.FindTopDocuments("cat", DocumentStatus::REMOVED);
         ASSERT_EQUAL_HINT(no_existing_status_result.size(), 0, "Status filtering is incorrect");
-    }
-    //Проверяем стандартную FindTopDocuments(const string& query)
-    {
-        const vector<Document> result = server.FindTopDocuments("-city food"s);
-        ASSERT_EQUAL_HINT(result.size(), 0, "Default FindTopDocuments implementation with 1 argument is incorrect"s);
-        const vector<Document> result2 = server.FindTopDocuments("stuff");
-        ASSERT_EQUAL_HINT(result2.size(), 0, "Default FindTopDocuments implementation with 1 argument is incorrect (not only DocumentStatus::ACTUAL included)"s);
-    }    
+    }  
 }
 /*
 Разместите код остальных тестов здесь
@@ -727,9 +712,10 @@ void TestSearchServer() {
     RUN_TEST(TestMinusWords);
     RUN_TEST(TestMatching);
     RUN_TEST(TestRating);
-    RUN_TEST(TestRelevanceCalculationAndSort);
+    RUN_TEST(TestRelevanceCalculation);
+    RUN_TEST(TestSorting);
     RUN_TEST(TestPredicate);
-    RUN_TEST(TestFindTopDocumentsOverloads);
+    RUN_TEST(TestFindByStatus);
 }
 
 // --------- Окончание модульных тестов поисковой системы -----------
