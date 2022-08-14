@@ -40,7 +40,7 @@ vector<string> SplitIntoWords(const string& text) {
             word += c;
         }
     }
-    if (!word.empty()) {\
+    if (!word.empty()) {
         words.push_back(word);
     }
 
