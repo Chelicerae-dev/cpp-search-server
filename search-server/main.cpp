@@ -89,10 +89,10 @@ public:
     explicit SearchServer(const StringContainer& stop_words)
         : stop_words_(MakeUniqueNonEmptyStrings(stop_words)) {
         //добавил проверку на валидность слова (содержание спец-символов) в конструктор
-        for(const string& word : stop_words) {
-            if(!IsValidWord(word)) {
-                throw invalid_argument("Stop word "s + word + " is invalid"s);
-            }
+        if(!all_of(stop_words.begin(), stop_words.end(), [](const string& word){
+            return IsValidWord(word);
+        })) {
+            throw invalid_argument("Stop word is invalid"s);
         }
     }
 
