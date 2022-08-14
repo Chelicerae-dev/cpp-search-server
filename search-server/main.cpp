@@ -158,7 +158,6 @@ public:
     }
 
     tuple<vector<string>, DocumentStatus> MatchDocument(const string& raw_query, int document_id) const {
-        // Empty result by initializing it with default constructed tuple
         Query query = ParseQuery(raw_query);
         vector<string> matched_words;
         for (const string& word : query.plus_words) {
@@ -233,7 +232,6 @@ private:
     };
 
     QueryWord ParseQueryWord(string text) const {
-        // Empty result by initializing it with default constructed QueryWord
         if (!IsValidWord(text)) {
             throw invalid_argument("Word "s + text + " is invalid"s);
         }
@@ -255,7 +253,6 @@ private:
     };
 
     Query ParseQuery(const string& text) const {
-        // Empty result by initializing it with default constructed Query
         Query result;
         for (const string& word : SplitIntoWords(text)) {
             QueryWord query_word= ParseQueryWord(word);
