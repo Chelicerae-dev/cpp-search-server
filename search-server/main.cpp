@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <numeric>
 
 using namespace std;
 
@@ -26,14 +27,6 @@ int ReadLineWithNumber() {
     return result;
 }
 
-//Перенёс из класса так как нельзя было использовать в функциях до кода класса статичный метод
-bool IsValidWord(const string& word) {
-    // A valid word must not contain special characters
-    return none_of(word.begin(), word.end(), [](char c) {
-        return c >= '\0' && c < ' ';
-    });
-}
-
 vector<string> SplitIntoWords(const string& text) {
     vector<string> words;
     string word;
@@ -47,10 +40,7 @@ vector<string> SplitIntoWords(const string& text) {
             word += c;
         }
     }
-    if (!word.empty()) {
-        if(!IsValidWord(word)) {
-            throw invalid_argument("Stop word "s + word + " is invalid"s);
-        }
+    if (!word.empty()) {\
         words.push_back(word);
     }
 
@@ -76,9 +66,6 @@ set<string> MakeUniqueNonEmptyStrings(const StringContainer& strings) {
     set<string> non_empty_strings;
     for (const string& str : strings) {
         if (!str.empty()) {
-            if(!IsValidWord(str)) {
-                throw invalid_argument("Stop word "s + str + " is invalid"s);
-            }
             non_empty_strings.insert(str);
         }
     }
@@ -101,6 +88,12 @@ public:
     template <typename StringContainer>
     explicit SearchServer(const StringContainer& stop_words)
         : stop_words_(MakeUniqueNonEmptyStrings(stop_words)) {
+        //добавил проверку на валидность слова (содержание спец-символов) в конструктор
+        for(const string& word : stop_words) {
+            if(!IsValidWord(word)) {
+                throw invalid_argument("Stop word "s + word + " is invalid"s);
+            }
+        }
     }
 
     explicit SearchServer(const string& stop_words_text)
@@ -202,6 +195,14 @@ private:
         return stop_words_.count(word) > 0;
     }
 
+    //Перенёс обратно в класс, так как это class-specific функционал
+    static bool IsValidWord(const string& word) {
+        // A valid word must not contain special characters
+        return none_of(word.begin(), word.end(), [](char c) {
+            return c >= '\0' && c < ' ';
+        });
+    }
+
     vector<string> SplitIntoWordsNoStop(const string& text) const {
         vector<string> words;
         for (const string& word : SplitIntoWords(text)) {
@@ -219,17 +220,16 @@ private:
         if (ratings.empty()) {
             return 0;
         }
-        int rating_sum = 0;
-        for (const int rating : ratings) {
-            rating_sum += rating;
-        }
+        //заменил цикл на accumulate
+        int rating_sum = accumulate(ratings.begin(), ratings.end(), 0);
         return rating_sum / static_cast<int>(ratings.size());
     }
 
     struct QueryWord {
         string data;
-        bool is_minus;
-        bool is_stop;
+        //задал значения по умолчанию
+        bool is_minus = false;
+        bool is_stop = false;
     };
 
     QueryWord ParseQueryWord(string text) const {
