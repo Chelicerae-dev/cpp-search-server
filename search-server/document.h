@@ -3,8 +3,6 @@
 #include <vector>
 #include <string>
 
-using std::literals::string_literals::operator""s;
-
 struct Document {
     Document();
     Document(int id, double relevance, int rating);
@@ -26,4 +24,3 @@ enum class DocumentStatus {
 void PrintDocument(const Document& document);
 
 void PrintMatchDocumentResult(int document_id, const std::vector<std::string>& words, DocumentStatus status);
-//

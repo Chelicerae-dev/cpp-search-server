@@ -7,6 +7,7 @@
 
     void SearchServer::AddDocument(int document_id, const std::string& document, DocumentStatus status, const std::vector<int>& ratings) {
         if ((document_id < 0) || (documents_.count(document_id) > 0)) {
+            using std::literals::string_literals::operator""s;
             throw std::invalid_argument("Invalid document_id"s);
         }
         const auto words = SplitIntoWordsNoStop(document);
@@ -76,6 +77,7 @@
         std::vector<std::string> words;
         for (const std::string& word : SplitIntoWords(text)) {
             if (!IsValidWord(word)) {
+                using std::literals::string_literals::operator""s;
                 throw std::invalid_argument("Word "s + word + " is invalid"s);
             }
             if (!IsStopWord(word)) {
@@ -97,6 +99,7 @@
     }
 
     SearchServer::QueryWord SearchServer::ParseQueryWord(const std::string& text) const {
+        using std::literals::string_literals::operator""s;
         if (text.empty()) {
             throw std::invalid_argument("Query word is empty"s);
         }
@@ -138,11 +141,13 @@ void AddDocument(SearchServer& search_server, int document_id, const std::string
     try {
         search_server.AddDocument(document_id, document, status, ratings);
     } catch (const std::invalid_argument& e) {
+        using std::literals::string_literals::operator""s;
         std::cout << "Ошибка добавления документа "s << document_id << ": "s << e.what() << std::endl;
     }
 }
 
 void FindTopDocuments(const SearchServer& search_server, const std::string& raw_query) {
+    using std::literals::string_literals::operator""s;
     std::cout << "Результаты поиска по запросу: "s << raw_query << std::endl;
     try {
         for (const Document& document : search_server.FindTopDocuments(raw_query)) {
@@ -154,6 +159,7 @@ void FindTopDocuments(const SearchServer& search_server, const std::string& raw_
 }
 
 void MatchDocuments(const SearchServer& search_server, const std::string& query) {
+    using std::literals::string_literals::operator""s;
     try {
         std::cout << "Матчинг документов по запросу: "s << query << std::endl;
         const int document_count = search_server.GetDocumentCount();

@@ -1,21 +1,13 @@
 #include "request_queue.h"
 
 std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query, DocumentStatus status) {
-        std::vector<Document> result = server_.FindTopDocuments(raw_query, status);
-        if(requests_.size() >= min_in_day_) {
-            requests_.pop_front();
-        }
-        requests_.push_back({result.size()});
-        return result;
+        return RequestQueue::AddFindRequest(raw_query, [status](int id, DocumentStatus status_filter, int rating) {
+            return status_filter == status;
+        });
     }
 
     std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query) {
-        std::vector<Document> result = server_.FindTopDocuments(raw_query);
-        if(requests_.size() >= min_in_day_) {
-            requests_.pop_front();
-        }
-        requests_.push_back({result.size()});
-        return result;
+        return RequestQueue::AddFindRequest(raw_query, DocumentStatus::ACTUAL);
     }
 
     int RequestQueue::GetNoResultRequests() const {
@@ -23,3 +15,5 @@ std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query,
             return res.size == 0;
         });
     }
+
+    

@@ -1,5 +1,7 @@
 #include "document.h"
 
+using std::literals::string_literals::operator""s;
+
 Document::Document() = default;
 
 Document::Document(int id, double relevance, int rating)
