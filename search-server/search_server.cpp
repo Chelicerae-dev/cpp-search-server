@@ -14,28 +14,28 @@
 
         const double inv_word_count = 1.0 / words.size();
         for (const std::string& word : words) {
-            SearchServer::word_to_document_freqs_[word][document_id] += inv_word_count;
+            word_to_document_freqs_[word][document_id] += inv_word_count;
         }
-        SearchServer::documents_.emplace(document_id, DocumentData{ComputeAverageRating(ratings), status});
-        SearchServer::document_ids_.push_back(document_id);
+        documents_.emplace(document_id, DocumentData{ComputeAverageRating(ratings), status});
+        document_ids_.push_back(document_id);
     }
 
     std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query, DocumentStatus status) const {
-        return SearchServer::FindTopDocuments(raw_query, [status](int document_id, DocumentStatus document_status, int rating) {
+        return FindTopDocuments(raw_query, [status](int document_id, DocumentStatus document_status, int rating) {
             return document_status == status;
         });
     }
 
     std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query) const {
-        return SearchServer::FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
+        return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
     }
 
     int SearchServer::GetDocumentCount() const {
-        return SearchServer::documents_.size();
+        return documents_.size();
     }
 
     int SearchServer::GetDocumentId(int index) const {
-        return SearchServer::document_ids_.at(index);
+        return document_ids_.at(index);
     }
 
     std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument(const std::string& raw_query, int document_id) const {
