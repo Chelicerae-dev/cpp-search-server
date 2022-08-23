@@ -1,12 +1,9 @@
 #include "document.h"
 #include "search_server.h"
-#include "paginator.h"
-#include "read_input_functions.h"
-#include "string_processing.h"
 #include "request_queue.h"
 #include <iostream>
 #include <string>
-#include <vector>
+
 
 using namespace std;
 
