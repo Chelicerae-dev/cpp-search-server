@@ -13,11 +13,16 @@
         const auto words = SplitIntoWordsNoStop(document);
 
         const double inv_word_count = 1.0 / words.size();
+        std::set<std::string> temp;
         for (const std::string& word : words) {
             word_to_document_freqs_[word][document_id] += inv_word_count;
+            documents_by_id_[document_id][word] += inv_word_count;
+            temp.insert(word);
         }
         documents_.emplace(document_id, DocumentData{ComputeAverageRating(ratings), status});
-        document_ids_.push_back(document_id);
+
+        words_by_id_.insert({document_id, temp});
+        document_ids_.insert(document_id);
     }
 
     std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query, DocumentStatus status) const {
@@ -34,8 +39,49 @@
         return documents_.size();
     }
 
+    //Deprecated
+    /*
     int SearchServer::GetDocumentId(int index) const {
         return document_ids_.at(index);
+    }
+    */
+
+    std::set<int>::iterator SearchServer::begin() const {
+        return document_ids_.begin();
+    }
+
+    std::set<int>::iterator SearchServer::end() const {
+        return document_ids_.end();
+    }
+
+    const std::map<std::string, double>& SearchServer::GetWordFrequencies(int document_id) const {
+        if(documents_by_id_.count(document_id)) {
+            return documents_by_id_.at(document_id);
+        } else {
+            return stub;
+        }
+    }
+
+void SearchServer::RemoveDocument(int document_id) {
+       document_ids_.erase(document_id);
+       documents_by_id_.erase(documents_by_id_.find(document_id));
+       documents_.erase(documents_.find(document_id));
+       words_by_id_.erase(words_by_id_.find(document_id));
+       std::vector<std::string> temp;
+       for(auto& [word, stats] : word_to_document_freqs_) {
+           auto id_iter = stats.find(document_id);
+           if(id_iter != stats.end()) {
+               stats.erase(id_iter);
+               if(stats.empty()) {
+                   temp.push_back(word);
+               }
+           }
+       }
+       if(!temp.empty()) {
+           for(const std::string& word : temp) {
+               word_to_document_freqs_.erase(word_to_document_freqs_.find(word));
+           }
+       }
     }
 
     std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument(const std::string& raw_query, int document_id) const {
@@ -164,7 +210,7 @@ void MatchDocuments(const SearchServer& search_server, const std::string& query)
         std::cout << "Матчинг документов по запросу: "s << query << std::endl;
         const int document_count = search_server.GetDocumentCount();
         for (int index = 0; index < document_count; ++index) {
-            const int document_id = search_server.GetDocumentId(index);
+            const int document_id = *next(search_server.begin(), index);
             const auto [words, status] = search_server.MatchDocument(query, document_id);
             PrintMatchDocumentResult(document_id, words, status);
         }

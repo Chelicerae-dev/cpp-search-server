@@ -12,6 +12,7 @@
 #include "document.h"
 #include "string_processing.h"
 
+
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 
 class SearchServer {
@@ -29,7 +30,15 @@ public:
 
     int GetDocumentCount() const;
 
-    int GetDocumentId(int index) const;
+    //Deprecated
+    //int GetDocumentId(int index) const;
+
+    std::set<int>::iterator begin() const;
+    std::set<int>::iterator end() const;
+
+    const std::map<std::string, double>& GetWordFrequencies(int document_id) const;
+
+    void RemoveDocument(int document_id);
 
     std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query, int document_id) const;
 
@@ -41,7 +50,11 @@ private:
     const std::set<std::string> stop_words_;
     std::map<std::string, std::map<int, double>> word_to_document_freqs_;
     std::map<int, DocumentData> documents_;
-    std::vector<int> document_ids_;
+    std::map<int, std::map<std::string, double>> documents_by_id_; //{ Ид документа, {слово, TF}}
+    std::map<int, std::set<std::string>> words_by_id_; // Слова каждого документа по ID
+    std::set<int> document_ids_;
+    const std::map<std::string, double> stub= {}; //Заглушка для возвращения ссылки на пустой мап
+    friend void RemoveDuplicates(SearchServer& server);
 
     bool IsStopWord(const std::string& word) const;
 
