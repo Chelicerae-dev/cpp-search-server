@@ -2,12 +2,19 @@
 
 void RemoveDuplicates(SearchServer& search_server) {
     std::set<int> duplicates;
-    for(auto iter = search_server.words_by_id_.begin(); iter != search_server.words_by_id_.end(); ++iter) {
-        auto pos = std::find_if(next(iter), search_server.words_by_id_.end(), [iter](const std::pair<int, std::set<std::string>>& value) {
-            return iter->second == value.second;
-        });
-        if(pos != search_server.words_by_id_.end()) {
-            duplicates.insert(pos->first);
+    std::map<std::set<std::string>, std::set<int>> words_to_documents;
+    for(int document_id : search_server) {
+        std::set<std::string> words;
+        for(const auto& [word, stats] : search_server.documents_by_id_.at(document_id)) {
+            words.insert(word);
+        }
+        words_to_documents[words].insert(document_id);
+    }
+    for(const auto& [words, ids] : words_to_documents) {
+        if(ids.size() > 1) {
+            std::for_each(next(ids.begin()), ids.end(), [&duplicates](int id) {
+                duplicates.insert(id);
+            });
         }
     }
     for(int id : duplicates) {

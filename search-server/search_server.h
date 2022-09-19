@@ -11,6 +11,7 @@
 #include <utility>
 #include "document.h"
 #include "string_processing.h"
+#include <numeric>
 
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
@@ -51,9 +52,10 @@ private:
     std::map<std::string, std::map<int, double>> word_to_document_freqs_;
     std::map<int, DocumentData> documents_;
     std::map<int, std::map<std::string, double>> documents_by_id_; //{ Ид документа, {слово, TF}}
-    std::map<int, std::set<std::string>> words_by_id_; // Слова каждого документа по ID
+    //std::map<std::set<std::string>, std::set<int>> words_by_id_; // Слова каждого документа по ID - deprecated
+    // (видимо, этот мап не стоило вводить исходя из Вашего ответа в слаке по поводу прохода по всем ид в сервере
+    //У меня были сомнения по поводу хранения ещё одного списка, действительно разумнее высчитать его при вызове удаления дубликатов
     std::set<int> document_ids_;
-    const std::map<std::string, double> stub= {}; //Заглушка для возвращения ссылки на пустой мап
     friend void RemoveDuplicates(SearchServer& server);
 
     bool IsStopWord(const std::string& word) const;
