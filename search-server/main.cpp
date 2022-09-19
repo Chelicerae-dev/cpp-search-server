@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include "test_example_functions.h"
+#include "remove_duplicates.h"
 
 using namespace std;
 
