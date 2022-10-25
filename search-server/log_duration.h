@@ -17,6 +17,9 @@ public:
     LogDuration(const std::string& id) : id_(id) {
     }
 
+    LogDuration(const std::string_view id) : id_(id) {
+    }
+
     ~LogDuration() {
         using namespace std::chrono;
         using namespace std::literals;
