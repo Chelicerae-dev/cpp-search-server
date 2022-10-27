@@ -232,12 +232,6 @@ std::tuple<std::vector<std::string_view>, DocumentStatus> SearchServer::MatchDoc
         using namespace std::literals;
         throw std::out_of_range("No such id"s);
     }
-//    if(std::any_of(raw_query.begin(), raw_query.end(), [](char ch){
-//        return ch < 32;
-//    })) {
-//        using namespace std::literals;
-//        throw std::invalid_argument("Invalid query--"s);
-//    }
     //В задании указано сохранить поведение, поэтому разделяем в зависимости от полиси
     if(typeid(policy).name() == typeid(std::execution::par).name()) {
         std::vector<std::string> plus_words, minus_words;
@@ -260,15 +254,16 @@ std::tuple<std::vector<std::string_view>, DocumentStatus> SearchServer::MatchDoc
         }
         std::sort(policy, plus_words.begin(), plus_words.end());
         auto plus_last = std::unique(plus_words.begin(), plus_words.end());
-        //plus_words.erase(plus_last, plus_words.end());
         std::vector<std::string_view> matched_words(plus_words.size());
         auto last = std::copy_if(policy, plus_words.begin(), plus_last, matched_words.begin(), [document_id, this](const auto& word){
-            return word_to_document_freqs_.count(word) != 0 && word_to_document_freqs_.at(word).count(document_id) != 0;
+            auto pos = word_to_document_freqs_.find(word);
+            return pos != word_to_document_freqs_.end() && pos->second.count(document_id) != 0;
         });
         matched_words.erase(last, matched_words.end());
         return {matched_words, documents_.at(document_id).status};
     } else {
         const auto query = ParseQuery(raw_query);
+
         std::vector<std::string_view> matched_words;
         for (const std::string& word: query.minus_words) {
             if (word_to_document_freqs_.at(word).count(document_id) != 0) {
