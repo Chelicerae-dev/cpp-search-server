@@ -126,7 +126,7 @@ void TestMatching() {
         SearchServer server(""s);
         server.AddDocument(1, content, DocumentStatus::BANNED, {1, 2, 3});
         const std::string query = "cat food"s;
-        const std::vector<std::string> expected_words = {"cat"s, "food"s};
+        const std::vector<std::string_view> expected_words = {"cat"sv, "food"sv};
         const auto [matched_words, status] = server.MatchDocument(query, 1);
         ASSERT_EQUAL_HINT(matched_words, expected_words, "Matching words from document is incorrect"s);
         ASSERT_EQUAL_HINT(status, DocumentStatus::BANNED, "Status from matching is incorrect"s);
@@ -136,9 +136,9 @@ void TestMatching() {
     {
         SearchServer server(""s);
         server.AddDocument(1, content, DocumentStatus::ACTUAL, {1, 2, 3});
-        const std::string query = "cat food -city";
+        const std::string query = "cat food -city"s;
         const auto [matched_words, status] = server.MatchDocument(query, 1);
-        std::vector<std::string> expected_words;
+        std::vector<std::string_view> expected_words;
         expected_words.clear();
         ASSERT_EQUAL_HINT(matched_words, expected_words, "Minus words not processed correctly in MatchDocuments()"s);
     }
@@ -151,14 +151,14 @@ void TestMatching() {
         {
             const std::string query = "cat in the food"s;
             const auto [matched_words, status] = server.MatchDocument(query, 1);
-            const std::vector<std::string> expected_words = {"cat"s, "food"s};
+            const std::vector<std::string_view> expected_words = {"cat"sv, "food"sv};
             ASSERT_EQUAL_HINT(matched_words, expected_words, "Matching with stop words is incorrect"s);
         }
         //Проверяем запрос только из стоп слов
         {
             const std::string query = "and in"s;
             const auto [matched_words, status] = server.MatchDocument(query, 1);
-            std::vector<std::string> expected_words;
+            std::vector<std::string_view> expected_words;
             expected_words.clear();
             ASSERT_EQUAL_HINT(matched_words, expected_words, "Matching document with stop words only is incorrect"s);
         }
@@ -346,10 +346,10 @@ void TestFindByStatus() {
     }
     //Проверяем фильтр по статусу
     {
-        const std::vector<Document> result = server.FindTopDocuments("cat food"s, DocumentStatus::BANNED);
+        const std::vector<Document> result = server.FindTopDocuments("cat food"sv, DocumentStatus::BANNED);
         ASSERT_EQUAL(result.size(), 1u);
         ASSERT_EQUAL_HINT(result[0].id, 1, "Status filtering is incorrect"s);
-        const std::vector<Document> no_existing_status_result = server.FindTopDocuments("cat", DocumentStatus::REMOVED);
+        const std::vector<Document> no_existing_status_result = server.FindTopDocuments("cat"sv, DocumentStatus::REMOVED);
         ASSERT_EQUAL_HINT(no_existing_status_result.size(), 0, "Status filtering is incorrect");
     }
 }
