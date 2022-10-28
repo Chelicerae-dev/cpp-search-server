@@ -5,6 +5,7 @@
 #include <random>
 #include <string>
 #include <vector>
+#include "process_queries.h"
 
 #include "log_duration.h"
 
@@ -15,7 +16,7 @@ string GenerateWord(mt19937& generator, int max_length) {
     string word;
     word.reserve(length);
     for (int i = 0; i < length; ++i) {
-        word.push_back(uniform_int_distribution('a', 'z')(generator));
+        word.push_back(uniform_int_distribution(static_cast<int>('a'),static_cast<int>('z'))(generator));
     }
     return word;
 }
