@@ -148,12 +148,20 @@ SearchServer::Query SearchServer::ParseQuery(const std::string& text) const {
         const auto query_word = ParseQueryWord(word);
         if (!query_word.is_stop) {
             if (query_word.is_minus) {
-                result.minus_words.insert(query_word.data);
+//                result.minus_words.insert(query_word.data);
+                result.minus_words.push_back(query_word.data);
             } else {
-                result.plus_words.insert(query_word.data);
+//                result.plus_words.insert(query_word.data);
+                result.plus_words.push_back(query_word.data);
             }
         }
     }
+    std::sort(std::execution::par, result.plus_words.begin(), result.plus_words.end());
+    std::sort(std::execution::par,result.minus_words.begin(), result.minus_words.end());
+    auto plus_last = std::unique(std::execution::par, result.plus_words.begin(), result.plus_words.end());
+    result.plus_words.erase(plus_last, result.plus_words.end());
+    auto minus_last = std::unique(std::execution::par, result.minus_words.begin(), result.minus_words.end());
+    result.minus_words.erase(minus_last, result.minus_words.end());
     return result;
 }
 SearchServer::Query SearchServer::ParseQuery(const std::string_view& text) const {
