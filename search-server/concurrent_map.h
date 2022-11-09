@@ -4,7 +4,6 @@
 #include <vector>
 #include <mutex>
 
-
 using namespace std::string_literals;
 
 template <typename Key, typename Value>

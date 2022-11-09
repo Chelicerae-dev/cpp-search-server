@@ -1,10 +1,12 @@
 #pragma once
-#include "document.h"
-#include "search_server.h"
+
 #include <vector>
 #include <deque>
 #include <algorithm>
 #include <utility>
+
+#include "document.h"
+#include "search_server.h"
 
 class RequestQueue {
 public:

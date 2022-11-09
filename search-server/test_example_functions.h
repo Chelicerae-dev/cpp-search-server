@@ -1,16 +1,17 @@
 #pragma once
 
 #include <iostream>
-#include "document.h"
 #include <string>
 #include <vector>
 #include <set>
 #include <map>
 #include <cassert>
-#include "search_server.h"
 #include <algorithm>
 #include <numeric>
+
+#include "document.h"
 #include "process_queries.h"
+#include "search_server.h"
 
 const double COMPARISON_PRECISION = 1e-6;
 //Переопределяем стандартный вывод для массивов
